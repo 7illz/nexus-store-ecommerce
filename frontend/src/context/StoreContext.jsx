@@ -85,30 +85,27 @@ export const StoreProvider = ({ children }) => {
 
   // 👇 THIS IS THE UPDATED FUNCTION 👇
   const addProduct = async (productData) => {
-    try {
-      // Check if the data is a physical file package (FormData) or just text (JSON)
-      const isFormData = productData instanceof FormData;
-      
-      const response = await fetch('http://localhost:5000/api/products', {
-        method: 'POST',
-        // Note: Browsers automatically set the correct headers and boundaries for FormData.
-        // If it's JSON, we manually add 'application/json'.
-        headers: isFormData ? {} : { 'Content-Type': 'application/json' },
-        body: isFormData ? productData : JSON.stringify(productData),
-      });
-      
-      if (response.ok) {
-        const createdProduct = await response.json();
-        const newItem = createdProduct?.product || createdProduct;
-        setProducts(prev => [...prev, newItem]); 
-        return true;
+      try {
+        const response = await fetch('http://localhost:5000/api/products', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(productData),
+        });
+        
+        if (response.ok) {
+          const createdProduct = await response.json();
+          const newItem = createdProduct?.product || createdProduct;
+          setProducts(prev => [...prev, newItem]); 
+          return true;
+        }
+        return false;
+      } catch (error) {
+        console.error("API Error - Creating product:", error);
+        return false;
       }
-      return false;
-    } catch (error) {
-      console.error("API Error - Creating product:", error);
-      return false;
-    }
-  };
+    };
 
   const deleteProduct = async (id) => {
     try {

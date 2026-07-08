@@ -3,15 +3,19 @@ const router = express.Router();
 const { 
   getProducts, 
   getProductById, 
-  createProductReview 
+  createProductReview,
+  createProduct // 👇 1. Import the new function here
 } = require('../controllers/productController');
-const { protect } = require('../middleware/authMiddleware'); // Your auth middleware
+const { protect } = require('../middleware/authMiddleware'); 
 
-// Public routes (Anyone can view products)
-router.route('/').get(getProducts);
+// 👇 2. Chain the .post() method to the root route
+router.route('/')
+  .get(getProducts)
+  .post(createProduct); 
+
 router.route('/:id').get(getProductById);
 
-// Protected route (Only logged-in users can post a review)
+// Protected route
 router.route('/:id/reviews').post(protect, createProductReview);
 
 module.exports = router;

@@ -12,13 +12,11 @@ export default function AdminProducts() {
     price: '', 
     countInStock: '', 
     description: '', 
-    image: '',       // For the text URL
-    imageFile: null  // For the physical file
+    image: '' // Only the text URL remains
   };
   
   const [newProduct, setNewProduct] = useState(initialProductState);
 
-  // Metrics
   const safeProducts = Array.isArray(products) ? products : [];
   const totalProducts = safeProducts.length;
   const totalInventoryValue = safeProducts.reduce((acc, item) => acc + ((item?.price || 0) * (item?.countInStock || 0)), 0);
@@ -33,30 +31,16 @@ export default function AdminProducts() {
   const handleCreateProduct = async (e) => {
     e.preventDefault();
     
-    let payload;
-
-    // If they uploaded a file, we MUST use FormData to send binary data over HTTP
-    if (newProduct.imageFile) {
-      payload = new FormData();
-      payload.append('name', newProduct.name);
-      payload.append('brand', newProduct.brand);
-      payload.append('category', newProduct.category);
-      payload.append('price', Number(newProduct.price));
-      payload.append('countInStock', Number(newProduct.countInStock));
-      payload.append('description', newProduct.description);
-      payload.append('imageFile', newProduct.imageFile); // Attach the actual file
-    } else {
-      // If no file, just send the normal JSON object
-      payload = {
-        name: newProduct.name,
-        brand: newProduct.brand,
-        category: newProduct.category,
-        price: Number(newProduct.price),
-        countInStock: Number(newProduct.countInStock),
-        description: newProduct.description,
-        image: newProduct.image // Send the URL string
-      };
-    }
+    // Send a standard, clean JSON object
+    const payload = {
+      name: newProduct.name,
+      brand: newProduct.brand,
+      category: newProduct.category,
+      price: Number(newProduct.price),
+      countInStock: Number(newProduct.countInStock),
+      description: newProduct.description,
+      image: newProduct.image 
+    };
 
     const success = await addProduct(payload);
     if (success) {
@@ -72,11 +56,6 @@ export default function AdminProducts() {
     setNewProduct({ ...newProduct, [name]: value });
   };
 
-  const handleFileChange = (e) => {
-    // Grab the first file the user selected
-    setNewProduct({ ...newProduct, imageFile: e.target.files[0] });
-  };
-
   return (
     <div className="relative space-y-6">
       <div className="flex justify-between items-center mb-2">
@@ -89,7 +68,6 @@ export default function AdminProducts() {
         </button>
       </div>
 
-      {/* Metric Dashboard */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
           <p className="text-sm font-medium text-gray-500">Total Products</p>
@@ -105,7 +83,6 @@ export default function AdminProducts() {
         </div>
       </div>
 
-      {/* Table Section */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left whitespace-nowrap">
@@ -160,49 +137,22 @@ export default function AdminProducts() {
         </div>
       </div>
 
-      {/* Add Product Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <h2 className="text-2xl font-bold mb-6 text-gray-900">Add New Product</h2>
             
             <form onSubmit={handleCreateProduct} className="space-y-5">
-              
               <div className="grid grid-cols-1 gap-5">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
-                  <input type="text" name="name" required value={newProduct.name} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" />
+                  <input type="text" name="name" required value={newProduct.name} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500" />
                 </div>
               </div>
 
-              {/* IMAGE UPLOAD SECTION */}
-              <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg space-y-4">
-                <h3 className="text-sm font-semibold text-gray-800">Product Image (Choose one)</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">Upload File</label>
-                    <input 
-                      type="file" 
-                      name="imageFile" 
-                      accept="image/*"
-                      onChange={handleFileChange} 
-                      className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" 
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">OR Image URL</label>
-                    <input 
-                      type="text" 
-                      name="image" 
-                      placeholder="https://..."
-                      value={newProduct.image} 
-                      onChange={handleInputChange} 
-                      disabled={!!newProduct.imageFile} // Disable text input if they selected a file
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 disabled:bg-gray-200" 
-                    />
-                  </div>
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
+                <input type="text" name="image" required placeholder="https://..." value={newProduct.image} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500" />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

@@ -98,10 +98,29 @@ const createProductReview = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+const createProduct = async (req, res) => {
+  try {
+    const newProduct = new Product({
+      name: req.body.name,
+      brand: req.body.brand,
+      category: req.body.category,
+      price: req.body.price,
+      countInStock: req.body.countInStock,
+      description: req.body.description,
+      image: req.body.image || 'https://via.placeholder.com/400',
+    });
 
+    const savedProduct = await newProduct.save();
+    res.status(201).json(savedProduct);
+  } catch (error) {
+    console.error("Error saving product:", error);
+    res.status(500).json({ message: "Database Error", error: error.message });
+  }
+};
 // Export all the functions so our routes can use them
-module.exports = { 
-  getProducts, 
-  getProductById, 
-  createProductReview 
+module.exports = {
+  getProducts,
+  getProductById,
+  createProductReview,
+  createProduct 
 };

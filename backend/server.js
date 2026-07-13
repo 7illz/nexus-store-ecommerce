@@ -14,6 +14,8 @@ require('dotenv').config(); // Ensure dotenv is loaded to read .env file
 const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/productRoutes');
 const orderRoutes = require('./routes/orderRoutes');
+const chatRoutes = require('./routes/chatRoutes'); // Near the top
+
 
 // Initialize App
 const app = express();
@@ -31,6 +33,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/coupons', require('./routes/couponRoutes'));
+app.use('/api/chat', require('./routes/chatRoutes'));
 
 // A simple test route
 app.get('/api', (req, res) => {

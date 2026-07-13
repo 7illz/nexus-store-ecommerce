@@ -100,6 +100,17 @@ const createProductReview = async (req, res) => {
 };
 const createProduct = async (req, res) => {
   try {
+    let finalImageUrl = 'https://via.placeholder.com/400';
+
+    // 1. Check if Multer/Cloudinary processed a physical file
+    if (req.file && req.file.path) {
+      finalImageUrl = req.file.path;
+    } 
+    // 2. Otherwise, check if a text URL was provided
+    else if (req.body.image) {
+      finalImageUrl = req.body.image;
+    }
+
     const newProduct = new Product({
       name: req.body.name,
       brand: req.body.brand,
@@ -107,7 +118,7 @@ const createProduct = async (req, res) => {
       price: req.body.price,
       countInStock: req.body.countInStock,
       description: req.body.description,
-      image: req.body.image || 'https://via.placeholder.com/400',
+      image: finalImageUrl, 
     });
 
     const savedProduct = await newProduct.save();
@@ -117,10 +128,59 @@ const createProduct = async (req, res) => {
     res.status(500).json({ message: "Database Error", error: error.message });
   }
 };
+
+const deleteProduct = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+
+    if (product) {
+      await Product.deleteOne({ _id: product._id });
+      res.json({ message: 'Product removed successfully' });
+    } else {
+      res.status(404).json({ message: 'Product not found' });
+    }
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
+
+const updateProduct = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+
+    if (product) {
+      product.name = req.body.name || product.name;
+      product.brand = req.body.brand || product.brand;
+      product.category = req.body.category || product.category;
+      product.price = req.body.price || product.price;
+      product.countInStock = req.body.countInStock || product.countInStock;
+      product.description = req.body.description || product.description;
+
+      // Handle the hybrid image logic
+      if (req.file && req.file.path) {
+        product.image = req.file.path; // New physical file
+      } else if (req.body.image) {
+        product.image = req.body.image; // New text URL
+      }
+
+      const updatedProduct = await product.save();
+      res.json(updatedProduct);
+    } else {
+      res.status(404).json({ message: 'Product not found' });
+    }
+  } catch (error) {
+    console.error("Error updating product:", error);
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
 // Export all the functions so our routes can use them
+// 👇 CRITICAL: Add updateProduct to your exports!
 module.exports = {
   getProducts,
   getProductById,
   createProductReview,
-  createProduct 
+  createProduct,
+  deleteProduct,
+  updateProduct // <-- ADD THIS
 };

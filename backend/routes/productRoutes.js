@@ -4,18 +4,27 @@ const {
   getProducts, 
   getProductById, 
   createProductReview,
-  createProduct // 👇 1. Import the new function here
+  createProduct,
+  deleteProduct,
+  updateProduct // 👇 1. Import it
 } = require('../controllers/productController');
 const { protect } = require('../middleware/authMiddleware'); 
+const upload = require('../middleware/upload'); 
 
-// 👇 2. Chain the .post() method to the root route
 router.route('/')
   .get(getProducts)
-  .post(createProduct); 
+  .post(upload.single('imageFile'), createProduct); 
 
-router.route('/:id').get(getProductById);
+// 👇 2. Chain the .delete() method to this route
+router.route('/:id')
+  .get(getProductById)
+  .delete(deleteProduct); 
 
-// Protected route
+router.route('/:id')
+  .get(getProductById)
+  .delete(deleteProduct)
+  .put(upload.single('imageFile'), updateProduct);
+
 router.route('/:id/reviews').post(protect, createProductReview);
 
 module.exports = router;

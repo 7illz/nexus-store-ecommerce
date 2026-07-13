@@ -59,7 +59,11 @@ export const StoreProvider = ({ children }) => {
     setToast(message);
     setTimeout(() => setToast(null), 3000);
   };
-
+  const logout = () => {
+    setUser(null); // This triggers the useEffect to clear localStorage
+    setOrders([]); // Clears their personal orders from the screen for security
+    showToast("Logged out successfully");
+  };  
   const addToCart = (newProduct) => {
     setCartItems((prevCartItems) => {
       const itemExists = prevCartItems.find((item) => item._id === newProduct._id);
@@ -83,16 +87,22 @@ export const StoreProvider = ({ children }) => {
   const cartTotal = safeCartItems.reduce((acc, item) => acc + ((item?.price || 0) * (item?.qty || 0)), 0);
   const cartCount = safeCartItems.reduce((acc, item) => acc + (item?.qty || 0), 0);
 
-  // 👇 THIS IS THE UPDATED FUNCTION 👇
   const addProduct = async (productData) => {
       try {
-        const response = await fetch('http://localhost:5000/api/products', {
+        const isFormData = productData instanceof FormData;
+        
+        const fetchOptions = {
           method: 'POST',
-          headers: {
+          body: isFormData ? productData : JSON.stringify(productData),
+        };
+
+        if (!isFormData) {
+          fetchOptions.headers = {
             'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(productData),
-        });
+          };
+        }
+
+        const response = await fetch('http://localhost:5000/api/products', fetchOptions);
         
         if (response.ok) {
           const createdProduct = await response.json();
@@ -120,28 +130,45 @@ export const StoreProvider = ({ children }) => {
     }
   };
 
-  const updateOrderStatus = async (id) => {
+  const updateProduct = async (id, productData) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/orders/${id}/deliver`, {
-        method: 'PUT',
-      });
-      if (response.ok) {
-        const updatedOrder = await response.json();
-        setOrders(prev => prev.map((order) => (order._id === id ? updatedOrder : order)));
+      const isFormData = productData instanceof FormData;
+      
+      const fetchOptions = {
+        method: 'PUT', 
+        body: isFormData ? productData : JSON.stringify(productData),
+      };
+
+      if (!isFormData) {
+        fetchOptions.headers = {
+          'Content-Type': 'application/json'
+        };
       }
+
+      const response = await fetch(`http://localhost:5000/api/products/${id}`, fetchOptions);
+      
+      if (response.ok) {
+        const updatedItem = await response.json();
+        setProducts(prev => prev.map(p => p._id === id ? updatedItem : p)); 
+        return true;
+      }
+      return false;
     } catch (error) {
-      console.error("API Error - Updating order:", error);
+      console.error("API Error - Updating product:", error);
+      return false;
     }
   };
 
+
+
   return (
     <StoreContext.Provider value={{ 
-      user, setUser, 
+      user, setUser, logout, // 👇 ADDED logout HERE
       searchQuery, setSearchQuery, 
       toast, showToast,
       cartItems, setCartItems, addToCart, removeFromCart, cartTotal, cartCount, 
-      products, addProduct, deleteProduct,
-      orders, updateOrderStatus
+      products, addProduct, deleteProduct, updateProduct,
+      orders
     }}>
       {children}
     </StoreContext.Provider>

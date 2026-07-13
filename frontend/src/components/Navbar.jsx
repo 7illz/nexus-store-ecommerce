@@ -1,11 +1,19 @@
 import React, { useContext } from 'react';
-import { Link } from 'react-router-dom';
-// 1. Added MapPin to your lucide-react imports
-import { ShoppingCart, Search, User, Package, MapPin } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+// 1. Added LogOut to your lucide-react imports
+import { ShoppingCart, Search, User, Package, MapPin, LogOut } from 'lucide-react';
 import { StoreContext } from '../context/StoreContext';
 
 export default function Navbar() {
-  const { cartCount, user, searchQuery, setSearchQuery } = useContext(StoreContext);
+  // 2. Pulled in logout from Context
+  const { cartCount, user, searchQuery, setSearchQuery, logout } = useContext(StoreContext);
+  const navigate = useNavigate();
+
+  // 3. Created the logout handler
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
@@ -34,18 +42,29 @@ export default function Navbar() {
           
           <div className="flex items-center space-x-6">
             
-            {/* 2. NEW: Store Location Link */}
             <Link to="/contact" className="flex items-center space-x-1 text-gray-500 hover:text-indigo-600 transition cursor-pointer" title="Find Our Store">
               <MapPin className="h-6 w-6" />
               <span className="hidden sm:block text-sm font-medium">Store</span>
             </Link>
 
-            {/* Conditional routing for User/Login */}
+            {/* Conditional routing for User/Login/Logout */}
             {user ? (
-              <Link to="/profile" className="flex items-center space-x-1 text-gray-500 hover:text-indigo-600 transition cursor-pointer">
-                <User className="h-6 w-6" />
-                <span className="hidden sm:block text-sm font-medium">{user.name}</span>
-              </Link>
+              <div className="flex items-center space-x-4">
+                <Link to="/profile" className="flex items-center space-x-1 text-gray-500 hover:text-indigo-600 transition cursor-pointer">
+                  <User className="h-6 w-6" />
+                  <span className="hidden sm:block text-sm font-medium">{user.name}</span>
+                </Link>
+                
+                {/* NEW: Logout Button */}
+                <button 
+                  onClick={handleLogout} 
+                  className="flex items-center space-x-1 text-gray-500 hover:text-red-600 transition cursor-pointer"
+                  title="Logout"
+                >
+                  <LogOut className="h-5 w-5" />
+                  <span className="hidden sm:block text-sm font-medium">Logout</span>
+                </button>
+              </div>
             ) : (
               <Link to="/login" className="text-sm font-medium text-gray-500 hover:text-indigo-600 transition cursor-pointer">
                 Log In

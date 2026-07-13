@@ -17,15 +17,19 @@ import DashboardHome from './pages/admin/DashboardHome';   // This is your KPI d
 
 import AdminProducts from './pages/admin/AdminProducts';
 import AdminOrders from './pages/admin/AdminOrders';
+import Chatbot from './components/Chatbot'; // Import the Chatbot component
 
 // 1. Create a layout shell for the customer-facing pages
 const StorefrontLayout = () => {
   return (
-    <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
+    <div className="min-h-screen bg-gray-50 font-sans text-gray-900 relative">
       <Navbar />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Outlet />
       </main>
+      
+      {/* 👇 We place the Chatbot here so it ONLY shows up for customers, not in the Admin panel! */}
+      <Chatbot />
     </div>
   );
 };
@@ -36,7 +40,7 @@ export default function App() {
       <Router>
         <Routes>
           
-          {/* 🛒 STOREFRONT ROUTES (Includes Navbar & max-width container) */}
+          {/* 🛒 STOREFRONT ROUTES (Includes Navbar, max-width container, AND Chatbot) */}
           <Route element={<StorefrontLayout />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
@@ -47,7 +51,7 @@ export default function App() {
             <Route path="/contact" element={<ContactPage />} />
           </Route>
 
-          {/* 🔒 PROTECTED ADMIN SECTION (Full width, independent layout) */}
+          {/* 🔒 PROTECTED ADMIN SECTION (Full width, independent layout, NO Chatbot) */}
           <Route element={<AdminRoute />}>
             {/* The AdminDashboard component here holds your Sidebar and <Outlet /> */}
             <Route path="/admin" element={<AdminDashboard />}>

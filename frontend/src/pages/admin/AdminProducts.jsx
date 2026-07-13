@@ -2,9 +2,10 @@ import React, { useState, useContext } from 'react';
 import { StoreContext } from '../../context/StoreContext'; 
 
 export default function AdminProducts() {
-  const { products, addProduct, deleteProduct } = useContext(StoreContext);
+  const { products, addProduct, deleteProduct, updateProduct } = useContext(StoreContext);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+  const [editingId, setEditingId] = useState(null);
+
   const initialProductState = {
     name: '', 
     brand: '', 
@@ -12,7 +13,8 @@ export default function AdminProducts() {
     price: '', 
     countInStock: '', 
     description: '', 
-    image: '' // Only the text URL remains
+    image: '', 
+    imageFile: null 
   };
   
   const [newProduct, setNewProduct] = useState(initialProductState);
@@ -28,27 +30,65 @@ export default function AdminProducts() {
     }
   };
 
-  const handleCreateProduct = async (e) => {
-    e.preventDefault();
-    
-    // Send a standard, clean JSON object
-    const payload = {
-      name: newProduct.name,
-      brand: newProduct.brand,
-      category: newProduct.category,
-      price: Number(newProduct.price),
-      countInStock: Number(newProduct.countInStock),
-      description: newProduct.description,
-      image: newProduct.image 
-    };
+  const handleEditClick = (product) => {
+    setNewProduct({
+      name: product.name,
+      brand: product.brand,
+      category: product.category,
+      price: product.price,
+      countInStock: product.countInStock,
+      description: product.description,
+      image: product.image,
+      imageFile: null
+    });
+    setEditingId(product._id); 
+    setIsModalOpen(true);
+  };
 
-    const success = await addProduct(payload);
+  // 👇 This function now handles BOTH adding and editing!
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    let payload;
+
+    if (newProduct.imageFile) {
+      payload = new FormData();
+      payload.append('name', newProduct.name);
+      payload.append('brand', newProduct.brand);
+      payload.append('category', newProduct.category);
+      payload.append('price', Number(newProduct.price));
+      payload.append('countInStock', Number(newProduct.countInStock));
+      payload.append('description', newProduct.description);
+      payload.append('imageFile', newProduct.imageFile); 
+    } else {
+      payload = {
+        name: newProduct.name,
+        brand: newProduct.brand,
+        category: newProduct.category,
+        price: Number(newProduct.price),
+        countInStock: Number(newProduct.countInStock),
+        description: newProduct.description,
+        image: newProduct.image 
+      };
+    }
+
+    let success;
+    if (editingId) {
+      success = await updateProduct(editingId, payload);
+    } else {
+      success = await addProduct(payload);
+    }
+
     if (success) {
-      setNewProduct(initialProductState);
+      setNewProduct(initialProductState); 
+      setEditingId(null); 
       setIsModalOpen(false);
     } else {
-      alert("Failed to create product. Check backend terminal for errors.");
+      alert(`Failed to ${editingId ? 'update' : 'create'} product. Check backend terminal for errors.`);
     }
+  };
+
+  const handleFileChange = (e) => {
+    setNewProduct({ ...newProduct, imageFile: e.target.files[0] });
   };
 
   const handleInputChange = (e) => {
@@ -56,12 +96,22 @@ export default function AdminProducts() {
     setNewProduct({ ...newProduct, [name]: value });
   };
 
+  const handleCloseModal = () => {
+    setNewProduct(initialProductState);
+    setEditingId(null);
+    setIsModalOpen(false);
+  }
+
   return (
     <div className="relative space-y-6">
       <div className="flex justify-between items-center mb-2">
         <h1 className="text-3xl font-bold text-gray-900">Manage Products</h1>
         <button 
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setNewProduct(initialProductState);
+            setEditingId(null);
+            setIsModalOpen(true);
+          }}
           className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition shadow-sm font-medium"
         >
           + Add New Product
@@ -122,7 +172,7 @@ export default function AdminProducts() {
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <button className="text-blue-600 hover:text-blue-800 font-medium hover:underline mr-4 transition">Edit</button>
+                      <button onClick={() => handleEditClick(product)} className="text-blue-600 hover:text-blue-800 font-medium hover:underline mr-4 transition">Edit</button>
                       <button onClick={() => handleDelete(product._id)} className="text-red-600 hover:text-red-800 font-medium hover:underline transition">Delete</button>
                     </td>
                   </tr>
@@ -140,9 +190,11 @@ export default function AdminProducts() {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold mb-6 text-gray-900">Add New Product</h2>
+            <h2 className="text-2xl font-bold mb-6 text-gray-900">
+              {editingId ? "Edit Product" : "Add New Product"}
+            </h2>
             
-            <form onSubmit={handleCreateProduct} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div className="grid grid-cols-1 gap-5">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
@@ -150,9 +202,33 @@ export default function AdminProducts() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
-                <input type="text" name="image" required placeholder="https://..." value={newProduct.image} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500" />
+              <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg space-y-4">
+                <h3 className="text-sm font-semibold text-gray-800">Product Image (Choose one)</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Upload File</label>
+                    <input 
+                      type="file" 
+                      name="imageFile" 
+                      accept="image/*"
+                      onChange={handleFileChange} 
+                      className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">OR Image URL</label>
+                    <input 
+                      type="text" 
+                      name="image" 
+                      placeholder="https://..."
+                      value={newProduct.image} 
+                      onChange={handleInputChange} 
+                      disabled={!!newProduct.imageFile}
+                      required={!newProduct.imageFile && !editingId} 
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 disabled:bg-gray-200" 
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -183,8 +259,10 @@ export default function AdminProducts() {
               </div>
 
               <div className="flex justify-end space-x-3 mt-8 pt-4 border-t">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md font-medium">Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-medium">Save Product</button>
+                <button type="button" onClick={handleCloseModal} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md font-medium">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 font-medium">
+                  {editingId ? "Update Product" : "Save Product"}
+                </button>
               </div>
             </form>
           </div>

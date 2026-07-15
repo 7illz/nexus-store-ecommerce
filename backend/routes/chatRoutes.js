@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { handleChatMessage } = require('../controllers/chatController');
+const { getAllChatSessions } = require('../controllers/chatController');
+const { protect, protectOwner } = require('../middleware/authMiddleware');
 
-router.post('/', handleChatMessage);
+// Get all active chat sessions (Admin Only)
+router.get('/sessions', protect, protectOwner, getAllChatSessions);
 
 module.exports = router;

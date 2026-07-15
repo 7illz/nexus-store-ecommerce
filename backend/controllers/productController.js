@@ -1,3 +1,4 @@
+const Order = require('../models/orderModel');
 const Product = require('../models/productModel');
 
 // @desc    Fetch all products (Includes Search, Filter, and Sort logic)
@@ -64,6 +65,16 @@ const createProductReview = async (req, res) => {
     const product = await Product.findById(req.params.id);
 
     if (product) {
+      // NEW REQUIREMENT: Check if the user has purchased and received this product
+      const hasBoughtAndDelivered = await Order.findOne({
+        user: req.user._id,
+        isDelivered: true,
+        'orderItems.product': product._id
+      });
+
+      if (!hasBoughtAndDelivered) {
+        return res.status(403).json({ message: 'You can only review products that have been delivered to you.' });
+      }
       // Prevent spam: Check if the user already reviewed this product
       const alreadyReviewed = product.reviews.find(
         (r) => r.user.toString() === req.user._id.toString()

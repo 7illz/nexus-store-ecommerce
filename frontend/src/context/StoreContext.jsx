@@ -40,20 +40,55 @@ export const StoreProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/orders')
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch orders");
-        return res.json();
+    // Only fetch ALL orders if the user is logged in as an owner (admin)
+    if (user && user.role === 'owner') {
+      const token = localStorage.getItem('token');
+      fetch('http://localhost:5000/api/orders', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       })
-      .then((data) => {
-        const safeOrders = Array.isArray(data) ? data : (data?.orders || []);
-        setOrders(safeOrders);
-      })
-      .catch((err) => {
-        console.error("Database connection error (Orders):", err);
-        setOrders([]); 
+        .then((res) => {
+          if (!res.ok) throw new Error("Failed to fetch orders");
+          return res.json();
+        })
+        .then((data) => {
+          const safeOrders = Array.isArray(data) ? data : (data?.orders || []);
+          setOrders(safeOrders);
+        })
+        .catch((err) => {
+          console.error("Database connection error (Orders):", err);
+          setOrders([]); 
+        });
+    } else {
+      // Normal users don't need the global orders state populated
+      setOrders([]);
+    }
+  }, [user]);
+
+  // Function for Admin Dashboard to mark orders as delivered
+  const updateOrderStatus = async (orderId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:5000/api/orders/${orderId}/deliver`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
-  }, []);
+      
+      if (response.ok) {
+        const updatedOrder = await response.json();
+        setOrders(prev => prev.map(o => o._id === orderId ? updatedOrder : o));
+        showToast("Order marked as delivered!");
+      } else {
+        showToast("Failed to update order status.");
+      }
+    } catch (error) {
+      console.error("Error updating order status:", error);
+      showToast("Error updating order status.");
+    }
+  };
 
   const showToast = (message) => {
     setToast(message);
@@ -168,7 +203,7 @@ export const StoreProvider = ({ children }) => {
       toast, showToast,
       cartItems, setCartItems, addToCart, removeFromCart, cartTotal, cartCount, 
       products, addProduct, deleteProduct, updateProduct,
-      orders
+      orders, updateOrderStatus
     }}>
       {children}
     </StoreContext.Provider>

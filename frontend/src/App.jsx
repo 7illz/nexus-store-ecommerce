@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
-import { StoreProvider } from './context/StoreContext';
+import { StoreProvider, StoreContext } from './context/StoreContext';
 import Navbar from './components/Navbar';
 
 import HomePage from './pages/HomePage';
@@ -17,12 +17,27 @@ import DashboardHome from './pages/admin/DashboardHome';   // This is your KPI d
 
 import AdminProducts from './pages/admin/AdminProducts';
 import AdminOrders from './pages/admin/AdminOrders';
+import AdminChat from './pages/admin/AdminChat';
 import Chatbot from './components/Chatbot'; // Import the Chatbot component
+
+// Toast notification component
+const ToastNotification = () => {
+  const { toast } = useContext(StoreContext);
+  if (!toast) return null;
+  return (
+    <div className="fixed top-6 right-6 z-[100] animate-slide-up">
+      <div className="glass-strong px-6 py-3 rounded-xl shadow-2xl text-sm font-medium text-gray-100 flex items-center gap-2">
+        <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+        {toast}
+      </div>
+    </div>
+  );
+};
 
 // 1. Create a layout shell for the customer-facing pages
 const StorefrontLayout = () => {
   return (
-    <div className="min-h-screen bg-gray-50 font-sans text-gray-900 relative">
+    <div className="min-h-screen bg-gray-950 font-sans text-gray-100 relative">
       <Navbar />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Outlet />
@@ -30,6 +45,7 @@ const StorefrontLayout = () => {
       
       {/* 👇 We place the Chatbot here so it ONLY shows up for customers, not in the Admin panel! */}
       <Chatbot />
+      <ToastNotification />
     </div>
   );
 };
@@ -58,6 +74,7 @@ export default function App() {
               <Route index element={<DashboardHome />} />
               <Route path="products" element={<AdminProducts />} />
               <Route path="orders" element={<AdminOrders />} />
+              <Route path="chat" element={<AdminChat />} />
             </Route>
           </Route>
 

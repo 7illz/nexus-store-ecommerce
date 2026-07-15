@@ -1,13 +1,15 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import { MessageSquare, X, Send } from 'lucide-react';
+import { io } from 'socket.io-client';
+import { StoreContext } from '../context/StoreContext';
+
+let socket;
 
 export default function Chatbot() {
+  const { user } = useContext(StoreContext);
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    { role: 'ai', text: 'Hi! I am the NexusStore support bot. How can I help you today?' }
-  ]);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
   // Auto-scroll to bottom of chat
@@ -15,34 +17,44 @@ export default function Chatbot() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const sendMessage = async (e) => {
-    e.preventDefault();
-    if (!input.trim()) return;
+  // Handle Socket Connection
+  useEffect(() => {
+    if (user && isOpen) {
+      // Connect to socket when chat is opened
+      socket = io('http://localhost:5000');
+      
+      const safeId = user._id || user.id;
+      // Join the chat room for this specific user
+      socket.emit('join_chat', safeId);
 
-    // Add user message to UI
-    const userMessage = { role: 'user', text: input };
-    setMessages((prev) => [...prev, userMessage]);
-    setInput('');
-    setIsLoading(true);
-
-    try {
-      // Send message to your backend
-      const response = await fetch('http://localhost:5000/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMessage.text }),
+      // Receive historical messages
+      socket.on('chat_history', (history) => {
+        setMessages(history);
       });
 
-      const data = await response.json();
-      
-      // Add AI response to UI
-      setMessages((prev) => [...prev, { role: 'ai', text: data.reply }]);
-    } catch (error) {
-      setMessages((prev) => [...prev, { role: 'ai', text: 'Connection error. Please try again.' }]);
-    } finally {
-      setIsLoading(false);
+      // Receive a new real-time message (from themselves or admin)
+      socket.on('receive_message', (message) => {
+        setMessages((prev) => [...prev, message]);
+      });
+
+      return () => {
+        socket.disconnect();
+      };
     }
+  }, [user, isOpen]);
+
+  const sendMessage = async (e) => {
+    e.preventDefault();
+    if (!input.trim() || !user) return;
+
+    // Send the message through the socket
+    const safeId = user._id || user.id;
+    socket.emit('send_message', { userId: safeId, text: input });
+    setInput('');
   };
+
+  // Only show the chatbot button if the user is logged in, and NOT an admin
+  if (!user || user.role === 'owner') return null; 
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
@@ -50,63 +62,67 @@ export default function Chatbot() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="bg-indigo-600 p-4 rounded-full shadow-lg text-white hover:bg-indigo-700 transition"
+          className="relative group"
         >
-          <MessageSquare className="h-6 w-6" />
+          <div className="absolute inset-0 bg-brand-500 rounded-full glow-ring" />
+          <div className="relative bg-gradient-to-r from-brand-600 to-accent-500 p-4 rounded-full shadow-lg shadow-brand-500/30 text-white hover:shadow-brand-500/50 hover:scale-105 transition-all duration-300">
+            <MessageSquare className="h-6 w-6" />
+          </div>
         </button>
       )}
 
       {/* The Chat Window */}
       {isOpen && (
-        <div className="bg-white w-80 sm:w-96 rounded-2xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col h-[500px]">
+        <div className="glass-strong w-80 sm:w-96 rounded-2xl shadow-2xl shadow-brand-900/20 overflow-hidden flex flex-col h-[500px] animate-slide-up">
           {/* Header */}
-          <div className="bg-indigo-600 p-4 text-white flex justify-between items-center">
-            <div className="font-bold">Nexus Support</div>
-            <button onClick={() => setIsOpen(false)} className="text-indigo-200 hover:text-white transition">
+          <div className="bg-gradient-to-r from-brand-700 to-accent-600 p-4 text-white flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+              <span className="font-bold">Live Support</span>
+            </div>
+            <button onClick={() => setIsOpen(false)} className="text-white/60 hover:text-white transition-colors rounded-lg hover:bg-white/10 p-1">
               <X className="h-5 w-5" />
             </button>
           </div>
 
           {/* Messages Area */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-50">
+          <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-950/80">
+            {messages.length === 0 && (
+              <div className="text-center text-gray-400 mt-4">
+                Send a message to start chatting with support!
+              </div>
+            )}
             {messages.map((msg, index) => (
-              <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div key={index} className={`flex ${msg.sender === 'customer' ? 'justify-end' : 'justify-start'} animate-fade-in`}>
                 <div 
                   className={`max-w-[80%] p-3 rounded-2xl text-sm ${
-                    msg.role === 'user' 
-                      ? 'bg-indigo-600 text-white rounded-tr-none' 
-                      : 'bg-gray-200 text-gray-800 rounded-tl-none'
+                    msg.sender === 'customer' 
+                      ? 'bg-gradient-to-r from-brand-600 to-brand-500 text-white rounded-tr-sm' 
+                      : 'bg-white/10 text-gray-200 border border-white/10 rounded-tl-sm'
                   }`}
                 >
                   {msg.text}
                 </div>
               </div>
             ))}
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-gray-200 text-gray-500 p-3 rounded-2xl rounded-tl-none text-sm animate-pulse">
-                  Typing...
-                </div>
-              </div>
-            )}
             <div ref={messagesEndRef} />
           </div>
 
           {/* Input Area */}
-          <form onSubmit={sendMessage} className="p-3 bg-white border-t border-gray-100 flex items-center gap-2">
+          <form onSubmit={sendMessage} className="p-4 bg-gray-900/90 border-t border-white/5 flex gap-2">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Type your message..."
-              className="flex-1 px-3 py-2 bg-gray-100 border-transparent rounded-lg focus:ring-0 focus:outline-none text-sm"
+              className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:border-brand-500 transition-colors"
             />
-            <button 
-              type="submit" 
-              disabled={isLoading || !input.trim()}
-              className="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-gray-300 transition"
+            <button
+              type="submit"
+              disabled={!input.trim()}
+              className="bg-brand-500 text-white p-2.5 rounded-xl hover:bg-brand-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Send className="h-4 w-4" />
+              <Send className="h-5 w-5" />
             </button>
           </form>
         </div>

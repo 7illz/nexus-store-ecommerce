@@ -18,7 +18,7 @@ export default function AdminChat() {
 
   const fetchSessions = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/chat/sessions', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/chat/sessions`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.ok) {
@@ -34,7 +34,7 @@ export default function AdminChat() {
     if (token) {
       fetchSessions();
 
-      socket = io('http://localhost:5000');
+      socket = io(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}`);
       socket.emit('join_admin');
 
       socket.on('new_admin_message', ({ userId, message }) => {
@@ -183,3 +183,4 @@ export default function AdminChat() {
     </div>
   );
 }
+

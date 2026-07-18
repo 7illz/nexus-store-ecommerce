@@ -55,7 +55,7 @@ export default function HomePage() {
         if (selectedCategory) queryParams.append('category', selectedCategory);
         if (sortOrder) queryParams.append('sort', sortOrder);
 
-        const response = await fetch(`http://localhost:5000/api/products?${queryParams.toString()}`);
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products?${queryParams.toString()}`);
         const data = await response.json();
         
         // Update our state with data from the new controller

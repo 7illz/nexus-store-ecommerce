@@ -34,7 +34,7 @@ export default function CartPage() {
     setCouponSuccess('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/coupons/apply', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/coupons/apply`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: couponCode })

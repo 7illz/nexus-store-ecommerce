@@ -33,7 +33,7 @@ export const StoreProvider = ({ children }) => {
   }, [discount]);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/products')
+    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch products");
         return res.json();
@@ -52,7 +52,7 @@ export const StoreProvider = ({ children }) => {
     // Only fetch ALL orders if the user is logged in as an owner (admin)
     if (user && user.role === 'owner') {
       const token = localStorage.getItem('token');
-      fetch('http://localhost:5000/api/orders', {
+      fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/orders`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -79,7 +79,7 @@ export const StoreProvider = ({ children }) => {
   const updateOrderStatus = async (orderId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/orders/${orderId}/deliver`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/orders/${orderId}/deliver`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -146,7 +146,7 @@ export const StoreProvider = ({ children }) => {
           };
         }
 
-        const response = await fetch('http://localhost:5000/api/products', fetchOptions);
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products`, fetchOptions);
         
         if (response.ok) {
           const createdProduct = await response.json();
@@ -163,7 +163,7 @@ export const StoreProvider = ({ children }) => {
 
   const deleteProduct = async (id) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/products/${id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products/${id}`, {
         method: 'DELETE',
       });
       if (response.ok) {
@@ -189,7 +189,7 @@ export const StoreProvider = ({ children }) => {
         };
       }
 
-      const response = await fetch(`http://localhost:5000/api/products/${id}`, fetchOptions);
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products/${id}`, fetchOptions);
       
       if (response.ok) {
         const updatedItem = await response.json();

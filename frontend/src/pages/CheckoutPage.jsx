@@ -66,7 +66,7 @@ export default function CheckoutPage() {
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       // 3. Send the POST request to the Express backend
-      const response = await fetch('http://localhost:5000/api/orders', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -21,7 +21,7 @@ export default function Chatbot() {
   useEffect(() => {
     if (user && isOpen) {
       // Connect to socket when chat is opened
-      socket = io('http://localhost:5000');
+      socket = io(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}`);
       
       const safeId = user._id || user.id;
       // Join the chat room for this specific user

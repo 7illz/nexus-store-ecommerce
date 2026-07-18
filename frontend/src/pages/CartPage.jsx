@@ -6,11 +6,10 @@ import { Trash2, ShoppingBag, ArrowRight, Tag } from 'lucide-react';
 export default function CartPage() {
   const navigate = useNavigate();
   // Assuming your StoreContext provides these. Adjust names if yours are slightly different!
-  const { user, cartItems = [], removeFromCart, addToCart } = useContext(StoreContext);
+  const { user, cartItems = [], removeFromCart, addToCart, discount, setDiscount } = useContext(StoreContext);
 
   // --- COUPON STATE ---
   const [couponCode, setCouponCode] = useState('');
-  const [discount, setDiscount] = useState(0); // Percentage off (e.g., 20)
   const [couponError, setCouponError] = useState('');
   const [couponSuccess, setCouponSuccess] = useState('');
   const [isApplying, setIsApplying] = useState(false);
@@ -104,7 +103,7 @@ export default function CartPage() {
                 <Link to={`/product/${item._id}`} className="text-base font-bold text-gray-100 hover:text-brand-400 line-clamp-1 transition-colors">
                   {item.name}
                 </Link>
-                <div className="text-brand-400 font-bold mt-1">${item.price.toFixed(2)}</div>
+                <div className="text-brand-400 font-bold mt-1">৳{item.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
               </div>
 
               {/* Quantity Selector */}
@@ -142,14 +141,14 @@ export default function CartPage() {
             <div className="space-y-4 mb-6 text-gray-400">
               <div className="flex justify-between">
                 <span>Subtotal ({cartItems.reduce((acc, item) => acc + (item.qty || 1), 0)} items)</span>
-                <span className="font-medium text-gray-200">${subtotal.toFixed(2)}</span>
+                <span className="font-medium text-gray-200">৳{subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
               
               {/* Discount Row (Only shows if coupon applied) */}
               {discount > 0 && (
                 <div className="flex justify-between text-green-400 font-medium animate-fade-in">
                   <span>Discount ({discount}%)</span>
-                  <span>-${discountAmount.toFixed(2)}</span>
+                  <span>-৳{discountAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </div>
               )}
             </div>
@@ -158,7 +157,7 @@ export default function CartPage() {
             
             <div className="flex justify-between items-center mb-8">
               <span className="text-lg font-bold text-gray-100">Total</span>
-              <span className="text-3xl font-extrabold gradient-text">${finalTotal.toFixed(2)}</span>
+              <span className="text-3xl font-extrabold gradient-text">৳{finalTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
 
             {/* --- COUPON UI BLOCK --- */}

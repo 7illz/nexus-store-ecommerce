@@ -29,6 +29,21 @@ export default function HomePage() {
   const [sortOrder, setSortOrder] = useState('newest');
   const [loading, setLoading] = useState(true);
 
+  // Slider state
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const slides = [
+    { id: 1, image: '/images/hero_slide_1.png', label: 'Pro Gaming Gear', desc: 'Up to 40% Off' },
+    { id: 2, image: '/images/hero_slide_2.png', label: 'Premium Watches', desc: 'New Arrivals' },
+    { id: 3, image: '/images/hero_slide_3.png', label: 'Sleek Laptops', desc: 'Starting at $999' }
+  ];
+
+  useEffect(() => {
+    const slideInterval = setInterval(() => {
+      setCurrentSlide(prev => (prev + 1) % slides.length);
+    }, 4000);
+    return () => clearInterval(slideInterval);
+  }, [slides.length]);
+
   // Fetch products whenever search, category, or sort changes
   useEffect(() => {
     const fetchProducts = async () => {
@@ -67,13 +82,13 @@ export default function HomePage() {
     <div>
       {/* Hero Section with Animated Gradient Mesh */}
       <div className="relative rounded-2xl overflow-hidden mb-12 shadow-2xl shadow-brand-900/20">
-        <div className="gradient-mesh relative px-8 py-16 sm:px-16 sm:py-24 lg:py-32 flex flex-col items-start">
+        <div className="gradient-mesh relative px-8 py-16 sm:px-16 sm:py-24 lg:py-20 flex flex-col lg:flex-row items-center justify-between gap-12">
           {/* Floating particle decorations */}
           <div className="absolute top-10 right-10 w-32 h-32 bg-brand-500/10 rounded-full blur-3xl animate-float" />
           <div className="absolute bottom-10 left-1/3 w-40 h-40 bg-accent-500/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
           <div className="absolute top-1/2 right-1/4 w-24 h-24 bg-brand-400/10 rounded-full blur-2xl animate-float" style={{ animationDelay: '4s' }} />
           
-          <div className="relative z-10">
+          <div className="relative z-10 lg:w-1/2">
             <div className="inline-flex items-center px-3 py-1 rounded-full bg-white/5 border border-white/10 text-brand-300 text-sm font-medium mb-6 backdrop-blur-sm">
               <div className="w-1.5 h-1.5 bg-green-400 rounded-full mr-2 animate-pulse" />
               New Arrivals Available
@@ -91,6 +106,37 @@ export default function HomePage() {
               Shop Now
             </Link>
           </div>
+
+          {/* Right Slider */}
+          <div className="relative z-10 lg:w-1/2 w-full max-w-lg">
+            <div className="relative w-full aspect-video sm:aspect-[4/3] lg:aspect-square rounded-3xl overflow-hidden border border-white/10 shadow-2xl group">
+              {slides.map((slide, index) => (
+                <div 
+                  key={slide.id}
+                  className={`absolute inset-0 transition-opacity duration-1000 ${index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+                >
+                  <img src={slide.image} alt={slide.label} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  {/* Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-gray-950/90 via-gray-900/40 to-transparent flex flex-col justify-end p-6 sm:p-8">
+                    <h3 className="text-2xl font-bold text-white mb-1">{slide.label}</h3>
+                    <p className="text-brand-400 font-medium">{slide.desc}</p>
+                  </div>
+                </div>
+              ))}
+              
+              {/* Slider Dots */}
+              <div className="absolute bottom-6 left-0 right-0 z-20 flex justify-center space-x-2">
+                {slides.map((_, index) => (
+                  <button 
+                    key={index} 
+                    onClick={() => setCurrentSlide(index)}
+                    className={`h-2 rounded-full transition-all duration-300 ${index === currentSlide ? 'w-6 bg-brand-400' : 'w-2 bg-white/40 hover:bg-white/70'}`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -178,7 +224,7 @@ export default function HomePage() {
                   {product.rating} ({product.numReviews})
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xl font-bold text-gray-100">${product.price.toFixed(2)}</span>
+                  <span className="text-xl font-bold text-gray-100">৳{product.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   <button 
                     onClick={() => addToCart(product)}
                     disabled={product.countInStock === 0}

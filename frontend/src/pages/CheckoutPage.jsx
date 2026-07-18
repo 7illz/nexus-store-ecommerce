@@ -5,7 +5,7 @@ import { StoreContext } from '../context/StoreContext';
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
-  const { cartItems, cartTotal, user, showToast, setCartItems } = useContext(StoreContext);
+  const { cartItems, cartTotal, user, showToast, setCartItems, discount } = useContext(StoreContext);
 
   // If the user isn't logged in, send them to the login page
   useEffect(() => {
@@ -48,13 +48,18 @@ export default function CheckoutPage() {
       }));
 
       // 2. Prepare the order data matching our backend Model
+      const discountAmount = (cartTotal * (discount || 0)) / 100;
+      const subtotalAfterDiscount = cartTotal - discountAmount;
+      const calculatedTax = Number((0.08 * subtotalAfterDiscount).toFixed(2));
+      const calculatedTotal = subtotalAfterDiscount + 10.00 + calculatedTax;
+
       const orderData = {
         orderItems: formattedOrderItems,
         shippingAddress,
         paymentMethod,
-        taxPrice: Number((0.08 * cartTotal).toFixed(2)),
+        taxPrice: calculatedTax,
         shippingPrice: 10.00,
-        totalPrice: cartTotal + 10.00 + (cartTotal * 0.08)
+        totalPrice: calculatedTotal
       };
 
       // Simulate a payment gateway processing delay (2 seconds)
@@ -103,8 +108,10 @@ export default function CheckoutPage() {
 
   // Calculate final totals
   const shippingPrice = 10.00;
-  const taxPrice = Number((0.08 * cartTotal).toFixed(2));
-  const finalTotal = cartTotal + shippingPrice + taxPrice;
+  const discountAmount = (cartTotal * (discount || 0)) / 100;
+  const subtotalAfterDiscount = cartTotal - discountAmount;
+  const taxPrice = Number((0.08 * subtotalAfterDiscount).toFixed(2));
+  const finalTotal = subtotalAfterDiscount + shippingPrice + taxPrice;
 
   return (
     <div className="max-w-7xl mx-auto py-8 animate-fade-in relative">
@@ -235,7 +242,7 @@ export default function CheckoutPage() {
               {cartItems.map((item, index) => (
                 <div key={index} className="flex justify-between items-center text-sm">
                   <span className="truncate pr-4 text-gray-400">{item.qty}x {item.name}</span>
-                  <span className="font-medium text-gray-200 flex-shrink-0">${(item.price * item.qty).toFixed(2)}</span>
+                  <span className="font-medium text-gray-200 flex-shrink-0">৳{(item.price * item.qty).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </div>
               ))}
             </div>
@@ -243,21 +250,27 @@ export default function CheckoutPage() {
             <div className="border-t border-white/10 pt-4 space-y-3 text-sm text-gray-400">
               <div className="flex justify-between">
                 <span>Items Subtotal</span>
-                <span className="text-gray-200">${cartTotal.toFixed(2)}</span>
+                <span className="text-gray-200">৳{cartTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
+              {discount > 0 && (
+                <div className="flex justify-between text-green-400 font-medium">
+                  <span>Discount ({discount}%)</span>
+                  <span>-৳{discountAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span>Shipping</span>
-                <span className="text-gray-200">${shippingPrice.toFixed(2)}</span>
+                <span className="text-gray-200">৳{shippingPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
               <div className="flex justify-between">
                 <span>Tax (8%)</span>
-                <span className="text-gray-200">${taxPrice.toFixed(2)}</span>
+                <span className="text-gray-200">৳{taxPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
             </div>
             
             <div className="border-t border-white/10 pt-6 mt-4 mb-8 flex justify-between items-center">
               <span className="text-lg font-bold text-gray-100">Total</span>
-              <span className="text-2xl font-extrabold gradient-text">${finalTotal.toFixed(2)}</span>
+              <span className="text-2xl font-extrabold gradient-text">৳{finalTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </div>
             
             <button 

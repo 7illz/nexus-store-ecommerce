@@ -12,6 +12,11 @@ export const StoreProvider = ({ children }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [toast, setToast] = useState(null);
   
+  const [discount, setDiscount] = useState(() => {
+    const saved = localStorage.getItem('cartDiscount');
+    return saved ? Number(saved) : 0;
+  });
+  
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
 
@@ -22,6 +27,10 @@ export const StoreProvider = ({ children }) => {
       localStorage.removeItem('user');
     }
   }, [user]);
+
+  useEffect(() => {
+    localStorage.setItem('cartDiscount', discount.toString());
+  }, [discount]);
 
   useEffect(() => {
     fetch('http://localhost:5000/api/products')
@@ -201,6 +210,7 @@ export const StoreProvider = ({ children }) => {
       user, setUser, logout, // 👇 ADDED logout HERE
       searchQuery, setSearchQuery, 
       toast, showToast,
+      discount, setDiscount,
       cartItems, setCartItems, addToCart, removeFromCart, cartTotal, cartCount, 
       products, addProduct, deleteProduct, updateProduct,
       orders, updateOrderStatus

@@ -62,7 +62,7 @@ const OrderCard = ({ order, index, user }) => {
         <div className="flex items-center justify-between w-full sm:w-auto gap-6 mt-2 sm:mt-0">
           <div className="text-left sm:text-right">
             <p className="text-sm text-gray-500 font-medium mb-0.5">Total Amount</p>
-            <p className="text-xl font-bold text-gray-100">${order.totalPrice?.toFixed(2)}</p>
+            <p className="text-xl font-bold text-gray-100">৳{order.totalPrice?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           </div>
           <button className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-gray-400 transition-colors">
             {expanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
@@ -90,7 +90,7 @@ const OrderCard = ({ order, index, user }) => {
                       <p className="text-sm text-gray-500 mt-0.5">Qty: {item.qty}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-brand-400">${(item.price * item.qty).toFixed(2)}</p>
+                      <p className="font-bold text-brand-400">৳{(item.price * item.qty).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                     </div>
                   </div>
                 ))}
@@ -123,19 +123,19 @@ const OrderCard = ({ order, index, user }) => {
                 <div className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-2 text-sm">
                   <div className="flex justify-between text-gray-400">
                     <span>Items:</span>
-                    <span className="text-gray-200">${(order.totalPrice - order.shippingPrice - order.taxPrice).toFixed(2)}</span>
+                    <span className="text-gray-200">৳{(order.totalPrice - order.shippingPrice - order.taxPrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
                   <div className="flex justify-between text-gray-400">
                     <span>Shipping:</span>
-                    <span className="text-gray-200">${order.shippingPrice?.toFixed(2)}</span>
+                    <span className="text-gray-200">৳{order.shippingPrice?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
                   <div className="flex justify-between text-gray-400">
                     <span>Tax:</span>
-                    <span className="text-gray-200">${order.taxPrice?.toFixed(2)}</span>
+                    <span className="text-gray-200">৳{order.taxPrice?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
                   <div className="flex justify-between font-bold pt-2 border-t border-white/10 mt-2">
                     <span className="text-gray-200">Total:</span>
-                    <span className="text-brand-400">${order.totalPrice?.toFixed(2)}</span>
+                    <span className="text-brand-400">৳{order.totalPrice?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
                 </div>
               </div>

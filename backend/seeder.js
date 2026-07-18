@@ -17,7 +17,7 @@ mongoose.connect(process.env.MONGO_URI)
 const importData = async () => {
   try {
     // 1. Clear out any old products to prevent duplicates
-    await Product.deleteMany();
+    // await Product.deleteMany(); // commented out to prevent wiping the database
 
     // 2. Find a user to act as the "Admin/Owner" who created these products.
     // We will just grab the first user in your database (which is you!)

@@ -113,7 +113,7 @@ export default function ProductPage() {
             <span className="text-gray-500 font-medium">({product.numReviews || 0} reviews)</span>
           </div>
           
-          <p className="text-3xl font-bold text-gray-100 mb-6">${product.price.toFixed(2)}</p>
+          <p className="text-3xl font-bold text-gray-100 mb-6">৳{product.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           <p className="text-gray-400 mb-8 leading-relaxed">{product.description}</p>
           
           <div className="mb-8">

@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
+import { Link } from 'react-router-dom';
 import { StoreContext } from '../../context/StoreContext'; 
-import { Plus, Edit2, Trash2, Box, DollarSign, AlertCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, Box, DollarSign, AlertCircle, Search } from 'lucide-react';
 
 export default function AdminProducts() {
   const { products, addProduct, deleteProduct, updateProduct } = useContext(StoreContext);
@@ -19,8 +20,19 @@ export default function AdminProducts() {
   };
   
   const [newProduct, setNewProduct] = useState(initialProductState);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const safeProducts = Array.isArray(products) ? products : [];
+  
+  const filteredProducts = safeProducts.filter(product => {
+    const query = searchQuery.toLowerCase();
+    return (
+      (product.name && product.name.toLowerCase().includes(query)) ||
+      (product.brand && product.brand.toLowerCase().includes(query)) ||
+      (product.category && product.category.toLowerCase().includes(query))
+    );
+  });
+
   const totalProducts = safeProducts.length;
   const totalInventoryValue = safeProducts.reduce((acc, item) => acc + ((item?.price || 0) * (item?.countInStock || 0)), 0);
   const lowStockItems = safeProducts.filter(item => item.countInStock < 5).length;
@@ -104,24 +116,36 @@ export default function AdminProducts() {
 
   return (
     <div className="relative space-y-6 animate-fade-in relative z-10">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div>
           <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-gray-100 to-gray-500 tracking-tight">
             Manage Products
           </h1>
           <p className="text-gray-400 mt-1 font-medium">Add, edit, or remove inventory.</p>
         </div>
-        <button 
-          onClick={() => {
-            setNewProduct(initialProductState);
-            setEditingId(null);
-            setIsModalOpen(true);
-          }}
-          className="flex items-center gap-2 bg-green-500 text-black px-5 py-2.5 rounded-xl hover:bg-green-400 hover:shadow-[0_0_15px_rgba(34,197,94,0.4)] transition-all font-bold tracking-wide"
-        >
-          <Plus className="w-5 h-5" />
-          Add Product
-        </button>
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+          <div className="relative w-full sm:w-64">
+            <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input 
+              type="text" 
+              placeholder="Search products..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 bg-gray-900/60 border border-gray-800 rounded-xl text-gray-100 focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none transition-all placeholder-gray-500"
+            />
+          </div>
+          <button 
+            onClick={() => {
+              setNewProduct(initialProductState);
+              setEditingId(null);
+              setIsModalOpen(true);
+            }}
+            className="flex items-center justify-center gap-2 bg-green-500 text-black px-5 py-2.5 rounded-xl hover:bg-green-400 hover:shadow-[0_0_15px_rgba(34,197,94,0.4)] transition-all font-bold tracking-wide w-full sm:w-auto"
+          >
+            <Plus className="w-5 h-5" />
+            Add Product
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -134,13 +158,10 @@ export default function AdminProducts() {
             <Box className="w-6 h-6 text-blue-400" />
           </div>
         </div>
-        <div className="bg-gray-900/60 backdrop-blur-md p-6 rounded-2xl border border-gray-800 shadow-xl flex items-center justify-between">
-          <div>
+        <div className="bg-gray-900/60 backdrop-blur-md p-6 rounded-2xl border border-gray-800 shadow-xl flex items-center justify-between overflow-hidden">
+          <div className="min-w-0 w-full">
             <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Total Value</p>
-            <p className="text-3xl font-black text-green-400">${totalInventoryValue.toFixed(2)}</p>
-          </div>
-          <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
-            <DollarSign className="w-6 h-6 text-green-400" />
+            <p className="text-2xl sm:text-3xl font-black text-green-400 truncate">৳{totalInventoryValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           </div>
         </div>
         <div className="bg-gray-900/60 backdrop-blur-md p-6 rounded-2xl border border-gray-800 shadow-xl flex items-center justify-between">
@@ -167,22 +188,22 @@ export default function AdminProducts() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-800">
-              {safeProducts.length > 0 ? (
-                safeProducts.map((product) => (
+              {filteredProducts.length > 0 ? (
+                filteredProducts.map((product) => (
                   <tr key={product._id} className="hover:bg-gray-800/50 transition-colors group">
                     <td className="px-6 py-4">
-                      <div className="flex items-center space-x-4">
+                      <Link to={`/product/${product._id}`} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-4 group cursor-pointer">
                         <div className="w-12 h-12 rounded-lg bg-gray-800 border border-gray-700 flex-shrink-0 overflow-hidden">
-                          <img src={product.image || 'https://via.placeholder.com/40'} alt={product.name} className="w-full h-full object-cover" />
+                          <img src={product.image || 'https://via.placeholder.com/40'} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                         </div>
                         <span className="font-bold text-gray-200 group-hover:text-green-400 transition-colors">{product.name}</span>
-                      </div>
+                      </Link>
                     </td>
                     <td className="px-6 py-4">
                       <span className="block text-sm font-bold text-gray-300">{product.category}</span>
                       <span className="block text-xs font-medium text-gray-500">{product.brand}</span>
                     </td>
-                    <td className="px-6 py-4 text-green-400 font-bold">${product.price.toFixed(2)}</td>
+                    <td className="px-6 py-4 text-green-400 font-bold">৳{product.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                     <td className="px-6 py-4">
                       {product.countInStock > 0 ? (
                         <span className="px-3 py-1.5 bg-green-500/10 border border-green-500/20 text-green-400 rounded-lg text-xs font-bold tracking-wide">
@@ -271,7 +292,7 @@ export default function AdminProducts() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Price ($)</label>
+                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Price (৳)</label>
                     <input type="number" name="price" step="0.01" min="0" required value={newProduct.price} onChange={handleInputChange} className="w-full px-4 py-3 bg-gray-950 border border-gray-800 rounded-xl text-gray-100 focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none transition-all" />
                   </div>
                   <div>

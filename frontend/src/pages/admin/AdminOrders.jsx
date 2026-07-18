@@ -46,13 +46,10 @@ export default function AdminOrders() {
             <ShoppingCart className="w-6 h-6 text-blue-400" />
           </div>
         </div>
-        <div className="bg-gray-900/60 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-gray-800 flex items-center justify-between">
-          <div>
+        <div className="bg-gray-900/60 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-gray-800 flex items-center justify-between overflow-hidden">
+          <div className="min-w-0 w-full">
             <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Total Revenue</p>
-            <p className="text-3xl font-black text-green-400">${totalRevenue.toFixed(2)}</p>
-          </div>
-          <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
-            <DollarSign className="w-6 h-6 text-green-400" />
+            <p className="text-2xl sm:text-3xl font-black text-green-400 truncate">৳{totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           </div>
         </div>
         <div className="bg-gray-900/60 backdrop-blur-md p-6 rounded-2xl shadow-xl border border-gray-800 flex items-center justify-between">
@@ -99,7 +96,7 @@ export default function AdminOrders() {
                     </td>
                     
                     <td className="px-6 py-4 font-bold text-green-400">
-                      ${order.totalPrice?.toFixed(2)}
+                      ৳{order.totalPrice?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
                     
                     <td className="px-6 py-4">
@@ -227,8 +224,8 @@ export default function AdminOrders() {
                         <p className="text-sm text-gray-500 font-medium mt-1">Qty: {item.qty}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-black text-green-400">${(item.price * item.qty).toFixed(2)}</p>
-                        <p className="text-xs text-gray-500 font-medium mt-1">${item.price.toFixed(2)} each</p>
+                        <p className="text-sm font-black text-green-400">৳{(item.price * item.qty).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                        <p className="text-xs text-gray-500 font-medium mt-1">৳{item.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} each</p>
                       </div>
                     </div>
                   ))}
@@ -240,19 +237,19 @@ export default function AdminOrders() {
                 <div className="w-full max-w-xs space-y-3">
                   <div className="flex justify-between text-sm text-gray-400 font-medium">
                     <span>Items Total:</span>
-                    <span>${(selectedOrder.totalPrice - selectedOrder.shippingPrice - selectedOrder.taxPrice).toFixed(2)}</span>
+                    <span>৳{(selectedOrder.totalPrice - selectedOrder.shippingPrice - selectedOrder.taxPrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
                   <div className="flex justify-between text-sm text-gray-400 font-medium">
                     <span>Shipping:</span>
-                    <span>${selectedOrder.shippingPrice?.toFixed(2)}</span>
+                    <span>৳{selectedOrder.shippingPrice?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
                   <div className="flex justify-between text-sm text-gray-400 font-medium">
                     <span>Tax:</span>
-                    <span>${selectedOrder.taxPrice?.toFixed(2)}</span>
+                    <span>৳{selectedOrder.taxPrice?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
                   <div className="flex justify-between items-center border-t border-gray-800 pt-4 mt-2">
                     <span className="font-bold text-gray-200 uppercase tracking-widest text-sm">Grand Total:</span>
-                    <span className="text-2xl font-black text-green-400">${selectedOrder.totalPrice?.toFixed(2)}</span>
+                    <span className="text-2xl font-black text-green-400">৳{selectedOrder.totalPrice?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
                 </div>
               </div>

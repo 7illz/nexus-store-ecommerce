@@ -195,7 +195,7 @@ export default function LoginPage() {
               <button 
                 type="button"
                 onClick={() => handleGoogleLogin()} 
-                className="w-full flex items-center justify-center space-x-2 glass hover:bg-white/8 text-gray-300 font-medium py-3 rounded-xl transition-all duration-300"
+                className="relative z-10 w-full flex items-center justify-center space-x-2 glass hover:bg-white/8 text-gray-300 font-medium py-3 rounded-xl transition-all duration-300 cursor-pointer"
               >
                 {/* Google "G" Logo SVG */}
                 <svg className="h-5 w-5" viewBox="0 0 24 24">
